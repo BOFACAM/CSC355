@@ -87,38 +87,31 @@ public class Hashtable<K, V> {
     }
     
 
+    private static final Object DeletedKey = new Object();
+
     //removes the (key, value) pair associated with <key>
     //returns the deleted value or null if the element was not in the table
     //resize to getNextNum(m/2) if m/2 >= 11 AND (double)n/m < alphaLow after the delete
     public V delete(K key) {
+        
         int hashCode = Math.abs(key.hashCode());
         int index = hashCode % m;
-    
+        
         while (table[index] != null) {
             if (table[index].getKey().equals(key) && !table[index].isDeleted()) {
                 V deletedValue = (V) table[index].getValue();
-                table[index].setDeleted(true); // Mark as deleted
+                table[index] = new Pair<>(DeletedKey, null);
                 n--;
     
-                if (m >= 11 && (double) n / m < alphaLow) {
+                if ((double) n / m < alphaLow) {
                     resize(getNextNum(m / 2));
-                }
-    
-                // Rehash and insert elements after the deleted pair
-                int nextIndex = (index + 1) % m;
-                while (table[nextIndex] != null && !table[nextIndex].isDeleted()) {
-                    Pair<K, V> pairToRehash = table[nextIndex];
-                    table[nextIndex] = null; // Remove the pair temporarily
-                    put(pairToRehash.getKey(), pairToRehash.getValue()); // Reinsert with updated hash
-                    nextIndex = (nextIndex + 1) % m;
                 }
     
                 return deletedValue;
             }
-            index = (index + 1) % m;
         }
     
-        return null;
+        return null; 
     }
 
     //return true if table is empty
