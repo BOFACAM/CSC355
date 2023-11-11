@@ -27,7 +27,7 @@ public class Hashtable<K, V> {
         m = newCapacity; // Update the table size
     
         for (Pair<K, V> pair : oldTable) {
-            if (pair != null && !pair.isDeleted()) {
+            if (pair != null && !pair.isDeleted() && !pair.getKey().equals(DeletedKey)) {
                 int hashCode = Math.abs(pair.getKey().hashCode());
                 int index = hashCode % m;
     
@@ -36,14 +36,14 @@ public class Hashtable<K, V> {
                 }
     
                 newTable[index] = pair;
-                //n++;
+                n++;
             }
         }
     
-        // Update the table reference to the new resized table
+        // Update the table to the new table
         table = newTable;
     }
-
+    
 
     //returns the value associated with key <key>
     //return null if key is not in table
@@ -67,28 +67,28 @@ public class Hashtable<K, V> {
     //if the key is already in the table
     //resize to getNextNum(2*m) if (double)n/m exceeds alphaHigh after the insert
     public void put(K key, V val) {
-        if (((double) n / m) > alphaHigh) {
-            resize(getNextNum(2 * m));
-        }
-    
+
         int hashCode = Math.abs(key.hashCode());
         int index = hashCode % m;
     
-        while (table[index] != null && (table[index].isDeleted() || !table[index].getKey().equals(key))) {
+        while (table[index] != null && (table[index].getKey().equals(DeletedKey) || !table[index].getKey().equals(key))) {
             index = (index + 1) % m;
         }
-    
-        table[index] = new Pair<>(key, val);
-        n++;
-    
-        if (m >= 11 && ((double) n / m) > alphaHigh) {
+
+        if(table[index] == null){
+            n++;
+        }
+
+        table[index] = new Pair<>( key, val);
+        
+         if (((double) n / m) > alphaHigh) {
             resize(getNextNum(2 * m));
         }
+
     }
     
-
-    private static final Object DeletedKey = new Object();
-
+    private static final Object DeletedKey = new Object();// i tried setting like the whole table[index]
+                                                            // to null but i didnt work unless i used an object. 
     //removes the (key, value) pair associated with <key>
     //returns the deleted value or null if the element was not in the table
     //resize to getNextNum(m/2) if m/2 >= 11 AND (double)n/m < alphaLow after the delete
@@ -103,7 +103,7 @@ public class Hashtable<K, V> {
                 table[index] = new Pair<>(DeletedKey, null);
                 n--;
     
-                if ((double) n / m < alphaLow) {
+                if ((m / 2 >= 11) && ((double)n/m < alphaLow)) {
                     resize(getNextNum(m / 2));
                 }
     
@@ -116,7 +116,7 @@ public class Hashtable<K, V> {
 
     //return true if table is empty
     public boolean isEmpty() {
-        return n == 0;
+        return n == 0; // also this is cool that you can just set this n==0 instead of running an if statement instead.
     }
 
     //return the number of (key,value) pairs in the table
@@ -149,4 +149,3 @@ public class Hashtable<K, V> {
 	return num;
     }
 }
-      
